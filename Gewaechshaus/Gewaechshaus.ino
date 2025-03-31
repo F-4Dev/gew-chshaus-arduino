@@ -257,3 +257,16 @@ bool isANumber() {
 void writeToEEPROM() {
   // EEPROM.put
 }
+
+
+/* TODO
+ * Wenn niemand im Gewächshaus ist, wird die Tür automatisch verriegelt, wenn sie zu
+ * ist.
+ * Damit man im Nachhinein nachvollziehen kann, was wann passiert ist, sollen Besonderheiten
+ * protokolliert werden:
+ * • Alarm
+ * • Öffnen der Tür
+ * • Schließen der Tür
+ * • Wasserstand zu niedrig
+ *
+
