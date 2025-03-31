@@ -1,0 +1,68 @@
+Syntax:
+attachInterrupt(digitalPinToInterrupt(pin), ISR, mode) (Empfohlen)
+
+
+
+
+Parameter
+interrupt: Die Interruptnummer. Erlaubte Datentypen: int.+ pin: Die Arduino-Pinnummer. (nur 2 und 3)
+ISR: Die Interrupt Service Routine, die aufgerufen werden soll. Die Funktion darf keine Parameter haben und nichts zurückgeben.
+mode: Definiert, wann der Interrupt getriggert werden soll. 4 Konstanten sind dafür definiert:
+
+LOW Interrupt wird getriggert, wenn der Pin LOW ist,
+
+CHANGE Interrupt wird getriggert, wenn der Pin den Wert ändert
+
+RISING Interrupt wird getriggert, wenn der Pin von LOW auf HIGH wechselt,
+
+FALLING Interrupt wird getriggert, wenn der Pin von HIGH auf LOW wechselt.
+Die Due-, Zero- und MKR1000-Boards erlauben zusätzlich:
+
+HIGH Interrupt wird getriggert, wenn der Pin HIGH ist.
+
+Beispiel
+
+Lässt eine LED blinken.
+
+// Setze den Pin für die LED auf 13
+const byte ledPin = 13;
+// Setze den Interruptpin auf 2
+const byte interruptPin = 2;
+// Definiere eine globale volatile Variable für den Status der LED
+volatile byte state = LOW;
+
+void setup() {
+  // Lege den Pin für die LED als Outputpin fest
+  pinMode(ledPin, OUTPUT);
+  // Lege den Interruptpin als Inputpin mit Pullupwiderstand fest
+  pinMode(interruptPin, INPUT_PULLUP);
+  // Lege die ISR 'blink' auf den Interruptpin mit Modus 'CHANGE':
+  // "Bei wechselnder Flanke auf dem Interruptpin" --> "Führe die ISR aus"
+  attachInterrupt(digitalPinToInterrupt(interruptPin), blink, CHANGE);
+}
+
+void loop() {
+serial.println ("TEST");
+dalay (1000);
+}
+
+void blink() {
+  // Invertiere den Status: "Lass die LED blinken von HIGH auf LOW/ an auf aus"
+  state = !state;
+
+  // Schreibe den Status der LED auf den LED-Pin zurück:
+  // "Schalte die LED an oder aus"
+  digitalWrite(ledPin, state);
+}
+
+
+
+
+
+
+
+
+
+
+
+
