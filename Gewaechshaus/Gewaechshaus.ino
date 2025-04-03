@@ -47,16 +47,28 @@ bool tuerStatus = true;  // tuer standartmaessig offen damit der Summer nicht su
 #include "IRremote.h"
 #include "IR.h"
 
+// clock
+#include <Wire.h>
+#include <DS3231.h>
+
+DS3231 clock;
+RTCDateTime dt;
+
 IRrecv irrecv(RECEIVER);  // create instance of 'irrecv'
 decode_results results;   // create instance of 'decode_results'
 
 
 void setup() {
-  Serial.begin(9600);
+  // clock
+  Serial.println("Initialize DS3231");;
+  clock.begin();
+  // Set sketch compiling time
+  clock.setDateTime(__DATE__, __TIME__);
+
   // Temperatursteuerung Dachluke Schrittmotors
   sensor.begin();
   dachluke.setSpeed(rolePerMinute);
-  // oled
+  // oledcloseDoor
   u8x8.setPowerSave(0);
   u8x8.begin();
   u8x8.setFont(u8x8_font_chroma48medium8_r);
@@ -79,25 +91,46 @@ void setup() {
 
 
 void loop() {
+  dt = clock.getDateTime();
+  // printe Uhrzeit im Serial Monitor
+  printuhrzeit();
+  // setzte Temperatur
   setTemperature();
+  // setzte Wasserlevel
   setWaterLevel();
+  // setzte LichtLevel
   setLdr();
+  // wenn zu wenig wasser das Bewaessere
   bewaesserung();
+  // wenn der Bewegunssensor etwas findet
   setBewegungsSensor();
+  // offne Fenster
   openWindow(temperature);  // Stepper
+  // gebe den aktuellen Input ueber die Fernbediengung
   setInput();
+  // funktion für das entsperren der Tuer
   doorLock();
+  // funktion zum schliessen der Tuer
   closeDoor();  // Wenn Power gedrueckt wird!
-
+  // schreibe daten in den EEPROM
+  writeToEEPROM();
+  // schreibe auf das OLED
   printOled(temperature);
-  delay(100);
+  delay(1000);
 }
 
-// Funktion von Vincent :)
+void printuhrzeit() {
+  Serial.print(dt.hour);   Serial.print(":");
+  Serial.print(dt.minute); Serial.print(":");
+  Serial.print(dt.second); Serial.println("");
+}
+
 void print(int row = 0, String text = "                ", int start = 0) {
   u8x8.setCursor(start, row);
   u8x8.print(text);
 }
+
+
 
 void openWindow(double temperature) {
   if (temperature > 25 && stepMotor == false) {
@@ -254,19 +287,22 @@ bool isANumber() {
   }
 }
 
+int eepromIndex = 0;
+
 void writeToEEPROM() {
-  // EEPROM.put
+
+  // Nach jeder Minute
+  if (dt.second == 0) {
+    EEPROM.write(eepromIndex, dt.hour);
+    eepromIndex++;
+    EEPROM.write(eepromIndex, dt.minute);
+    eepromIndex++;
+    EEPROM.write(eepromIndex, tuerStatus);
+    eepromIndex++;
+    EEPROM.write(eepromIndex, temperature);
+    eepromIndex++;
+    EEPROM.write(eepromIndex, humidity); // Bodenfeuchtigkeit
+    eepromIndex++;
+    // index 0 stunde - index 1 minute
+  }
 }
-
-
-/* TODO
- * Wenn niemand im Gewächshaus ist, wird die Tür automatisch verriegelt, wenn sie zu
- * ist.
- * Damit man im Nachhinein nachvollziehen kann, was wann passiert ist, sollen Besonderheiten
- * protokolliert werden:
- * • Alarm
- * • Öffnen der Tür
- * • Schließen der Tür
- * • Wasserstand zu niedrig
- *
-
