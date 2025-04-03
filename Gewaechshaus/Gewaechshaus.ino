@@ -290,7 +290,6 @@ bool isANumber() {
 int eepromIndex = 0;
 
 void writeToEEPROM() {
-
   // Nach jeder Minute
   if (dt.second == 0) {
     EEPROM.write(eepromIndex, dt.hour);
